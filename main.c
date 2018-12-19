@@ -11,7 +11,8 @@
 * B = la limite de poid du sac à dos
 */
 
-#define MAX 20
+#define MAX 8
+#define CON 12
 
 //====================DEFINITION=====================
 typedef struct{
@@ -31,6 +32,7 @@ typedef struct{
 
 
 //====================================================
+Probleme sacADosFixe();
 Probleme sacADosAleat(int n);
 float calculB(tab t, unsigned int n);
 void affichageProbleme(Probleme prob);
@@ -46,7 +48,7 @@ int main(int argc, char const *argv[]) {
     printf("Hello THE World\n");
 
     //Génération du problème
-    Probleme prob = sacADosAleat(MAX);
+    Probleme prob = sacADosFixe();
     affichageProbleme(prob);
 
     //Programmation Dynamique
@@ -61,6 +63,49 @@ int main(int argc, char const *argv[]) {
 
 
 //====================FONCTIONS======================
+Probleme sacADosFixe(){
+    Probleme prob;
+    Objet obj;
+
+    //A
+    obj.cout = 5;
+    obj.poids = 2;
+    prob.t_objets[0] = obj;
+    //B
+    obj.cout = 8;
+    obj.poids = 3;
+    prob.t_objets[1] = obj;
+    //C
+    obj.cout = 14;
+    obj.poids = 5;
+    prob.t_objets[2] = obj;
+    //D
+    obj.cout = 6;
+    obj.poids = 2;
+    prob.t_objets[3] = obj;
+    //E
+    obj.cout = 13;
+    obj.poids = 4;
+    prob.t_objets[4] = obj;
+    //F
+    obj.cout = 17;
+    obj.poids = 6;
+    prob.t_objets[5] = obj;
+    //G
+    obj.cout = 10;
+    obj.poids = 3;
+    prob.t_objets[6] = obj;
+    //H
+    obj.cout = 4;
+    obj.poids = 1;
+    prob.t_objets[7] = obj;
+
+    prob.b = CON;
+    prob.n = 4;
+
+    return prob;
+}
+
 Probleme sacADosAleat(int n) {
     srand(time(NULL));
     Probleme prob;
@@ -95,41 +140,77 @@ void progDynamique(Probleme prob){
     int contenance = (int)prob.b;
     int M[MAX][contenance+1];
 
-    //Remplissage de la 1ere ligne de la matrice.
-    for (int j = 0; j < contenance; j++) {
-        if (prob.t_objets[0].poids > j) {
-            M[0][j] = 0;
-        } else {
-            M[0][j] = prob.t_objets[0].cout;
-        }
-    }
+
 
     //Remplissage de la matrice à partir de la 2e ligne.
-    for(int i=1; i<MAX; i++) {
-        printf("Poids objet 0 : %d\n", prob.t_objets[0].cout);
-        for (int j = 0; j < contenance; j++) {
-            if (prob.t_objets[i].poids > j) {
-                if(i-1 >= 0)
-                    M[i][j] = M[i-1][j];
-                else
-                    M[i][j] = 0;
-            } else {
-                if(i-1 >= 0)
-                    M[i][j] = maximum(M[i-1][j], M[i-1][j-prob.t_objets[i].poids]*prob.t_objets[i].cout);
-                else
-                    M[i][j] = 0;
+    for(int i=0; i<MAX; i++) {
+        printf("Poids objet %d : %d\n",i, prob.t_objets[i].cout);
+        if(i==0){
+            //Remplissage de la 1ere ligne de la matrice.
+            for (int j = 0; j <= contenance; j++) {
+                if (prob.t_objets[0].poids > j) {
+                    M[0][j] = 0;
+                } else {
+                    M[0][j] = prob.t_objets[0].cout;
+                }
+            }
+        }else {
+            for (int j = 0; j <= contenance; j++) {
+                if (prob.t_objets[i].poids > j) {
+                    M[i][j] = M[i - 1][j];
+                } else {
+                    M[i][j] = maximum(M[i - 1][j], M[i - 1][j - prob.t_objets[i].poids] + prob.t_objets[i].cout);
+                }
             }
         }
     }
 
+    //Affichage de la matrice de programmation dynamique
     printf("Affichage de la matrice de programmation dynamique\n");
     for (int i = 0; i < MAX; i++) {
-        printf("Objet %d\n", 0);
-        for (int j = 0; j < contenance; j++) {
+        printf("Objet %d\n", i+1);
+        for (int j = 0; j <= contenance; j++) {
             printf("%d\t", M[i][j]);
         }
         printf("\n");
     }
+
+    /*
+     * Résolution de la programmation dynamique
+     * Le bénéfice optimal et la solution optimale se trouvent dans la matrice
+     */
+    int j = contenance;
+    int i = MAX-1;
+
+    //La derniere case founnit le bénéfice obtimal
+    printf("Le bénéfice optimal est de : %d\n", M[i][j]);
+
+    //On recule sur la ligne de la valeur optimale pour trouver le optimal
+
+    int totPoid = 0;
+    int totCout = 0;
+    //On cherche le poid minimal nécessaire pour le bénéfice optimal
+    while(M[i][j] == M[i-1][j]){
+        j--;
+    }
+    printf("\n");
+    while(j>0){
+        while(i>0 && M[i][j] == M[i-1][j]){
+            i--;
+        }
+        j = j-prob.t_objets[i].poids;
+        if(j>0){
+            printf("L'objet %d fait parti de la solution optimale\n",i);
+            totPoid += prob.t_objets[i].poids;
+            totCout += prob.t_objets[i].cout;
+        }
+        i--;
+    }
+    printf("Voici la solution finale :\n");
+    printf("Le bénéfice sera de %d pour un poids de %d", totCout, totPoid);
+
+
+
 }
 
 int maximum(int a, int b){
@@ -138,6 +219,7 @@ int maximum(int a, int b){
 
     return b;
 }
+
 
 //Affichage du probleme
 void affichageProbleme(Probleme prob){
