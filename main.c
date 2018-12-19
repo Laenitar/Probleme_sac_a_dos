@@ -29,20 +29,33 @@ typedef struct{
     unsigned int z;
 }Probleme;
 
+
 //====================================================
 Probleme sacADosAleat(int n);
 float calculB(tab t, unsigned int n);
 void affichageProbleme(Probleme prob);
+void progDynamique(Probleme prob);
+int maximum(int a, int b);
+void affichagePrgDynamique(int **M, int contenance);
 Probleme heuristique_gloutonne(Probleme P);
 int indice_objet_optimum(Probleme P, float* optimum);
 
-//====================MAIN===========================
-int main() {
 
+//====================MAIN===========================
+int main(int argc, char const *argv[]) {
+    printf("Hello THE World\n");
+
+    //Génération du problème
     Probleme prob = sacADosAleat(MAX);
     affichageProbleme(prob);
-    prob = heuristique_gloutonne(prob);
-    affichageProbleme(prob);
+
+    //Programmation Dynamique
+    progDynamique(prob);
+
+
+    //prob = heuristique_gloutonne(prob);
+
+
     return 0;
 }
 
@@ -58,8 +71,6 @@ Probleme sacADosAleat(int n) {
         prob.t_objets[i] = obj;
         prob.t_objets[i].x=0;
     }
-    prob.z = 0;
-    prob.n = n;
     prob.b = calculB(prob.t_objets, n);
 
     return prob;
@@ -74,6 +85,56 @@ float calculB(tab t, unsigned int n){
     srand(time(NULL));
     unsigned int nb_alea = rand()%3 +1;
     return 0.25*nb_alea*S;
+}
+
+
+
+void progDynamique(Probleme prob){
+    int contenance = (int)prob.b;
+    int M[MAX][contenance+1];
+
+    //Remplissage de la 1ere ligne de la matrice.
+    for (int j = 0; j < contenance; j++) {
+        if (prob.t_objets[0].poids > j) {
+            M[0][j] = 0;
+        } else {
+            M[0][j] = prob.t_objets[0].cout;
+        }
+    }
+
+    //Remplissage de la matrice à partir de la 2e ligne.
+    for(int i=1; i<MAX; i++) {
+        printf("Poids objet 0 : %d\n", prob.t_objets[0].cout);
+        for (int j = 0; j < contenance; j++) {
+            if (prob.t_objets[i].poids > j) {
+                if(i-1 >= 0)
+                    M[i][j] = M[i-1][j];
+                else
+                    M[i][j] = 0;
+            } else {
+                if(i-1 >= 0)
+                    M[i][j] = maximum(M[i-1][j], M[i-1][j-prob.t_objets[i].poids]*prob.t_objets[i].cout);
+                else
+                    M[i][j] = 0;
+            }
+        }
+    }
+
+    printf("Affichage de la matrice de programmation dynamique\n");
+    for (int i = 0; i < MAX; i++) {
+        printf("Objet %d\n", 0);
+        for (int j = 0; j < contenance; j++) {
+            printf("%d\t", M[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int maximum(int a, int b){
+    if(a>b)
+        return a;
+
+    return b;
 }
 
 //Affichage du probleme
@@ -122,4 +183,15 @@ int indice_objet_optimum(Probleme P, float* optimum){
         indice_optimum=i;
     }
     return indice_optimum;
+}
+
+void affichagePrgDynamique(int **M, int contenance) {
+    printf("Affichage de la matrice de programmation dynamique\n");
+    for (int i = 0; i < MAX; i++) {
+        printf("Objet %d\n", i);
+        for (int j = 0; j < contenance; j++) {
+            printf("%d\t", M[i][j]);
+        }
+        printf("\n");
+    }
 }
