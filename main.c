@@ -41,7 +41,7 @@ int main() {
 
     Probleme prob = sacADosAleat(MAX);
     affichageProbleme(prob);
-    prob = heusterique_gloutonne(prob);
+    prob = heuristique_gloutonne(prob);
     affichageProbleme(prob);
     return 0;
 }
