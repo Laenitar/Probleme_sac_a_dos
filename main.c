@@ -71,6 +71,8 @@ Probleme sacADosAleat(int n) {
         prob.t_objets[i] = obj;
         prob.t_objets[i].x=0;
     }
+    prob.z = 0;
+    prob.n = n;
     prob.b = calculB(prob.t_objets, n);
 
     return prob;
