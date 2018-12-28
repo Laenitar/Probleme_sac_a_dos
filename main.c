@@ -11,7 +11,7 @@
 * B = la limite de poid du sac à dos
 */
 
-#define MAX 8
+#define MAX 100
 #define CON 12
 
 //====================DEFINITION=====================
@@ -38,24 +38,58 @@ float calculB(tab t, unsigned int n);
 void affichageProbleme(Probleme prob);
 void progDynamique(Probleme prob);
 int maximum(int a, int b);
-void affichagePrgDynamique(int **M, int contenance);
+void affichagePrgDynamique(int **M, int contenance, int n);
 Probleme heuristique_gloutonne(Probleme P);
 int indice_objet_optimum(Probleme P, float* optimum);
 
 
 //====================MAIN===========================
 int main(int argc, char const *argv[]) {
-    printf("Hello THE World\n");
+    Probleme prob;
+    int n;
+    int choixProb = 0;
 
-    //Génération du problème
-    Probleme prob = sacADosFixe();
-    affichageProbleme(prob);
 
-    //Programmation Dynamique
-    progDynamique(prob);
+    printf("A l'attention du correcteur !\n");
+    printf("Le tableau d'objet est initialisé grâce à la variable global max. \nVeuillez la changez pour le mettre en adéquation averc le nombre d'objet généré aléatoirement. Merci\n");
 
+    do{
+        printf("Veuillez choisir un problème du sac à dos:\n");
+        printf("\t1/ Problème fixe : 8 objets et 12 de contenance\n");
+        printf("\t2/ Problème aléatoire\n");
+        printf("\t9/ Quitter\n");
+        printf("Choix : ");
+        scanf("%d", &choixProb);
+        printf("\n");
+
+        switch (choixProb){
+            case 1:
+                prob = sacADosFixe();
+                //affichageProbleme(prob);
+                //Programmation Dynamique
+                progDynamique(prob);
+                break;
+            case 2 :
+                printf("Veuillez saisir le nombre d'objet que vous voulez créer aléatoirement : ");
+                scanf("%d", &n);
+                printf("\n");
+                prob = sacADosAleat(n);
+                //affichageProbleme(prob);
+                //Programmation Dynamique
+                progDynamique(prob);
+
+            case 9:
+                choixProb = 9;
+                break;
+            default:
+                printf("Ce choix n\'existe pas, veuillez recommencez\n");
+
+        }
+    }while(choixProb != 9 );
 
     //prob = heuristique_gloutonne(prob);
+
+    printf("\nExit\n");
 
 
     return 0;
@@ -101,7 +135,7 @@ Probleme sacADosFixe(){
     prob.t_objets[7] = obj;
 
     prob.b = CON;
-    prob.n = 4;
+    prob.n = 8;
 
     return prob;
 }
@@ -138,12 +172,12 @@ float calculB(tab t, unsigned int n){
 
 void progDynamique(Probleme prob){
     int contenance = (int)prob.b;
-    int M[MAX][contenance+1];
+    int M[prob.n][contenance+1];
 
 
 
     //Remplissage de la matrice à partir de la 2e ligne.
-    for(int i=0; i<MAX; i++) {
+    for(int i=0; i<prob.n; i++) {
         printf("Poids objet %d : %d\n",i, prob.t_objets[i].cout);
         if(i==0){
             //Remplissage de la 1ere ligne de la matrice.
@@ -166,9 +200,9 @@ void progDynamique(Probleme prob){
     }
 
     //Affichage de la matrice de programmation dynamique
-    printf("Affichage de la matrice de programmation dynamique\n");
-    for (int i = 0; i < MAX; i++) {
-        printf("Objet %d\n", i+1);
+    printf("Affichage de la matrice de programmation dynamique :\n******************\n");
+    for (int i = 0; i < prob.n; i++) {
+        printf("Objet %d\n", i);
         for (int j = 0; j <= contenance; j++) {
             printf("%d\t", M[i][j]);
         }
@@ -180,34 +214,36 @@ void progDynamique(Probleme prob){
      * Le bénéfice optimal et la solution optimale se trouvent dans la matrice
      */
     int j = contenance;
-    int i = MAX-1;
+    int i = prob.n-1;
 
     //La derniere case founnit le bénéfice obtimal
-    printf("Le bénéfice optimal est de : %d\n", M[i][j]);
+    printf("\nLe bénéfice optimal est de : %d\n", M[i][j]);
+    printf("La contenance du sac à dos est de : %0.2f\n", prob.b);
+
 
     //On recule sur la ligne de la valeur optimale pour trouver le optimal
 
     int totPoid = 0;
     int totCout = 0;
     //On cherche le poid minimal nécessaire pour le bénéfice optimal
-    while(M[i][j] == M[i-1][j]){
+    while(M[i][j] == M[i][j-1]){
         j--;
     }
     printf("\n");
     while(j>0){
-        while(i>0 && M[i][j] == M[i-1][j]){
+        while(i>=0 && M[i][j] == M[i-1][j]){
             i--;
         }
-        j = j-prob.t_objets[i].poids;
         if(j>0){
-            printf("L'objet %d fait parti de la solution optimale\n",i);
+            j = j-prob.t_objets[i].poids;
+
+            printf("L'objet %d ,de poids %d, fait parti de la solution optimale\n",i, prob.t_objets[i].poids);
             totPoid += prob.t_objets[i].poids;
             totCout += prob.t_objets[i].cout;
         }
         i--;
     }
-    printf("Voici la solution finale :\n");
-    printf("Le bénéfice sera de %d pour un poids de %d", totCout, totPoid);
+    printf("Le bénéfice sera de %d pour un poids de %d\n\n", totCout, totPoid);
 
 
 
@@ -225,7 +261,7 @@ int maximum(int a, int b){
 void affichageProbleme(Probleme prob){
     printf("============================================\n");
     printf("Voici la liste des objets du problème :\n");
-    for(int i=0; i<MAX; i++){
+    for(int i=0; i<prob.n; i++){
         printf("Objet n°%d, cout : %d, poids : %d, pris : %d\n", i, prob.t_objets[i].cout,prob.t_objets[i].poids,prob.t_objets[i].x);
     }
     printf("Poids max du sac : %f\n", prob.b);
@@ -269,9 +305,9 @@ int indice_objet_optimum(Probleme P, float* optimum){
     return indice_optimum;
 }
 
-void affichagePrgDynamique(int **M, int contenance) {
+void affichagePrgDynamique(int **M, int contenance, int n) {
     printf("Affichage de la matrice de programmation dynamique\n");
-    for (int i = 0; i < MAX; i++) {
+    for (int i = 0; i < n; i++) {
         printf("Objet %d\n", i);
         for (int j = 0; j < contenance; j++) {
             printf("%d\t", M[i][j]);
