@@ -14,7 +14,7 @@ mrProper:
 
 do:
 	clear
-	./main 8192 16 2 trace.txt
+	./main
 
 clear:
 	clear
